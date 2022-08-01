@@ -20,6 +20,7 @@ interface IFormInput {
 
 export default function PostSlug({ post }: PostProps) {
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
   const {
     register,
     handleSubmit,
@@ -27,12 +28,16 @@ export default function PostSlug({ post }: PostProps) {
   } = useForm<IFormInput>()
 
   const onSubmit: SubmitHandler<IFormInput> = (data) => {
+    setLoading(true)
     fetch('/api/createComment', {
       method: 'POST',
       body: JSON.stringify(data),
     })
-      .then(() => setSubmitted(true))
       .then(() => {
+        setSubmitted(true)
+      })
+      .then(() => {
+        setLoading(false)
         setTimeout(() => {
           setSubmitted(false)
         }, 5000)
@@ -152,8 +157,10 @@ export default function PostSlug({ post }: PostProps) {
         </div>
         <input
           type="submit"
-          className="cursor-pointer rounded bg-yellow-500 py-2 px-4 font-bold text-white shadow outline-none hover:bg-yellow-400 focus:shadow-sm"
-          value={'Submit'}
+          className={`cursor-pointer rounded bg-yellow-500 py-2 px-4 font-bold text-white shadow outline-none hover:bg-yellow-400 ${
+            loading && '!bg-gray-500'
+          } focus:shadow-sm`}
+          value={!loading ? 'Submit' : 'Loading....'}
         />
       </form>
       <div className="my-10 mx-auto flex max-w-2xl flex-col space-y-2  p-10 shadow shadow-yellow-400">
@@ -213,8 +220,7 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     },
     'comments': *[
       _type =='comment' && 
-      post._ref == ^._id && 
-      approved == true
+      post._ref == ^._id
     ],
     description,
     mainImage,
